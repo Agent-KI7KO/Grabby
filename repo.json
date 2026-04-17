@@ -23,13 +23,13 @@
     "Punchline": "Plugin to save current appearance and applied mods of a character",
     "AcceptsFeedback": false,
     "IsTestingExclusive": "False",
-    "DownloadLinkInstall": "https://github.com/BeSlightly/Grabby/releases/download/v0.5.0.3/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/BeSlightly/Grabby/releases/download/v0.5.0.3/latest.zip",
+    "DownloadLinkInstall": "https://github.com/Agent-KI7KO/Grabby/releases/download/0.5.0.3/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/Agent-KI7KO/Grabby/releases/download/0.5.0.3/latest.zip",
     "DownloadLinkTesting": "https://github.com/BeSlightly/Grabby/releases/download/v0.5.0.1/latest.zip",
     "IconUrl": "https://raw.githubusercontent.com/BeSlightly/Grabby/refs/heads/master/grabby.png",
-    "LastUpdate": 1776314211,
+    "LastUpdate": 1776420648,
     "Changelog": "",
-    "DownloadCount": 4985,
+    "DownloadCount": 0,
     "TestingAssemblyVersion": "0.5.0.1"
   }
 ]
