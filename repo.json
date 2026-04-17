@@ -1,0 +1,35 @@
+[
+  {
+    "Author": "Eqbot, ViviAshe, astrodoobs, BeSlightly",
+    "Name": "Grabby",
+    "InternalName": "Grabby",
+    "AssemblyVersion": "0.5.0.3",
+    "Description": "Want to export your character and mods exactly as-is in a single collection *without* Mare? This plugin saves and loads your character's current appearance, and allows you to share modded characters without relying on MCDF.",
+    "RepoUrl": "https://github.com/BeSlightly/Grabby",
+    "ApplicableVersion": "any",
+    "Tags": [
+      "utility",
+      "grabby",
+      "snapper",
+      "mare",
+      "snapshot"
+    ],
+    "DalamudApiLevel": 14,
+    "TestingDalamudApiLevel": 14,
+    "LoadRequiredState": 0,
+    "LoadSync": false,
+    "CanUnloadAsync": false,
+    "LoadPriority": 0,
+    "Punchline": "Plugin to save current appearance and applied mods of a character",
+    "AcceptsFeedback": false,
+    "IsTestingExclusive": "False",
+    "DownloadLinkInstall": "https://github.com/BeSlightly/Grabby/releases/download/v0.5.0.3/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/BeSlightly/Grabby/releases/download/v0.5.0.3/latest.zip",
+    "DownloadLinkTesting": "https://github.com/BeSlightly/Grabby/releases/download/v0.5.0.1/latest.zip",
+    "IconUrl": "https://raw.githubusercontent.com/BeSlightly/Grabby/refs/heads/master/grabby.png",
+    "LastUpdate": 1776314211,
+    "Changelog": "",
+    "DownloadCount": 4985,
+    "TestingAssemblyVersion": "0.5.0.1"
+  }
+]

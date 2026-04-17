@@ -1,0 +1,185 @@
+using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
+using Dalamud.Interface.Windowing;
+using ECommons.Configuration;
+using ECommons.GameHelpers;
+using Grabby.Services;
+using Grabby.Services.SnapshotManager;
+
+namespace Grabby.UI.Windows;
+
+public sealed class ConfigWindow : Window
+{
+    private readonly IActiveSnapshotManager _activeSnapshotManager;
+    private readonly Configuration _configuration;
+    private readonly Grabby _grabby;
+    private readonly IIpcManager _ipcManager;
+
+    public ConfigWindow(Grabby grabby, Configuration configuration, IActiveSnapshotManager activeSnapshotManager,
+        IIpcManager ipcManager)
+        : base(
+            "Grabby Settings",
+            ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+    {
+        SizeConstraints = new WindowSizeConstraints
+        {
+            MinimumSize = new Vector2(380, 290) * ImGuiHelpers.GlobalScale,
+            MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
+        };
+
+        _grabby = grabby;
+        _configuration = configuration;
+        _activeSnapshotManager = activeSnapshotManager;
+        _ipcManager = ipcManager;
+    }
+
+    public override void Draw()
+    {
+        var disableRevert = _configuration.DisableAutomaticRevert;
+        if (Im.Checkbox("Disable Automatic Revert on GPose Exit", ref disableRevert))
+        {
+            if (_configuration.DisableAutomaticRevert && !disableRevert)
+                if (Player.Available)
+                {
+                    PluginLog.Debug("DisableAutomaticRevert unticked, reverting local player.");
+                    var localPlayer = Player.Object;
+                    if (localPlayer != null)
+                        _activeSnapshotManager.RevertSnapshotForCharacter(localPlayer);
+                }
+
+            _configuration.DisableAutomaticRevert = disableRevert;
+            _configuration.Save();
+        }
+
+        ImGui.Indent();
+        using (var d = ImRaii.Disabled(!_configuration.DisableAutomaticRevert))
+        {
+            var allowOutside = _configuration.AllowOutsideGpose;
+            if (Im.Checkbox("Allow loading to your character outside of GPose", ref allowOutside))
+            {
+                _configuration.AllowOutsideGpose = allowOutside;
+                _configuration.Save();
+            }
+
+            ImGui.Indent();
+            using (var d2 = ImRaii.Disabled(!allowOutside))
+            {
+                var allowOwnedPets = _configuration.AllowOutsideGposeOwnedPets;
+                if (Im.Checkbox("Allow loading to your own pets outside of GPose", ref allowOwnedPets))
+                {
+                    _configuration.AllowOutsideGposeOwnedPets = allowOwnedPets;
+                    _configuration.Save();
+                }
+                Im.Tooltip.OnHover("Also shows your pets in the actor list.");
+            }
+            ImGui.Unindent();
+        }
+
+        ImGui.Unindent();
+
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudYellow);
+            Im.Text(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+        }
+
+        ImGui.SameLine();
+        using (var textColor = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+        {
+            Im.Text("Warning: These features are unsupported and may cause issues.");
+        }
+
+        ImGui.Separator();
+
+        Im.Text("Snapshot data source:");
+        ImGui.Indent();
+
+        var useLiveSnapshotData = _configuration.UseLiveSnapshotData;
+        if (Im.Checkbox("Use Penumbra/Customize+/Glamourer (fallback)", ref useLiveSnapshotData))
+        {
+            _configuration.UseLiveSnapshotData = useLiveSnapshotData;
+            _configuration.Save();
+        }
+        Im.Tooltip.OnHover(
+            "Fallback for unsupported forks; Mare reflection is usually more complete for supported forks."
+        );
+
+        using (var d = ImRaii.Disabled(!useLiveSnapshotData))
+        {
+            var useIpcResourcePaths = _configuration.UsePenumbraIpcResourcePaths;
+            if (Im.Checkbox("Use Penumbra IPC (resource paths)", ref useIpcResourcePaths))
+            {
+                _configuration.UsePenumbraIpcResourcePaths = useIpcResourcePaths;
+                _configuration.Save();
+            }
+            Im.Tooltip.OnHover("IPC uses only currently loaded/on-screen files (no full collection). Use if reflection fails.");
+
+            var includeTempActors = _configuration.IncludeVisibleTempCollectionActors;
+            if (Im.Checkbox("Include visible actors with temporary collections", ref includeTempActors))
+            {
+                _configuration.IncludeVisibleTempCollectionActors = includeTempActors;
+                _configuration.Save();
+            }
+            Im.Tooltip.OnHover("Adds players with temporary Penumbra collections to the actor selection.");
+        }
+
+        ImGui.Unindent();
+        ImGui.Separator();
+
+        if (
+            Im.Button(
+                "Run Snapshot Migration Scan",
+                new Vector2(ImGui.GetContentRegionAvail().X, 0)
+            )
+        )
+            _grabby.ManuallyRunMigration();
+        Im.Tooltip.OnHover(
+            "Manually scans your working directory for old-format snapshots and migrates them to the current format.\n"
+            + "A backup is created before any changes are made."
+        );
+
+        ImGui.Separator();
+        DrawMarePluginStatus();
+    }
+
+    private void DrawMarePluginStatus()
+    {
+        Im.Text("Mare Plugin Status:");
+        ImGui.Indent();
+
+        var mareStatus = _ipcManager.GetMarePluginStatus();
+
+        foreach (var (pluginName, isAvailable) in mareStatus)
+        {
+            var displayName = pluginName switch
+            {
+                "LightlessSync" => "Lightless Sync",
+                "Snowcloak" => "Snowcloak",
+                "MareSempiterne" => "Player Sync",
+                _ => pluginName
+            };
+
+            var icon = isAvailable ? FontAwesomeIcon.Check : FontAwesomeIcon.Times;
+            var iconColor = isAvailable ? ImGuiColors.HealerGreen : ImGuiColors.DalamudRed;
+            var hasForkColor = MareForkColors.TryGetByPluginName(pluginName, out var forkColor);
+
+            using (ImRaii.PushFont(UiBuilder.IconFont))
+            {
+                using var color = ImRaii.PushColor(ImGuiCol.Text, iconColor);
+                Im.Text(icon.ToIconString());
+            }
+
+            ImGui.SameLine();
+
+            var fallbackColor = ImGui.ColorConvertU32ToFloat4(
+                ImGui.GetColorU32(isAvailable ? ImGuiCol.Text : ImGuiCol.TextDisabled));
+            var textColor = hasForkColor
+                ? new Vector4(forkColor.X, forkColor.Y, forkColor.Z, isAvailable ? forkColor.W : 0.4f)
+                : fallbackColor;
+            using var textColorScope = ImRaii.PushColor(ImGuiCol.Text, textColor);
+            Im.Text(displayName);
+        }
+
+        ImGui.Unindent();
+    }
+}

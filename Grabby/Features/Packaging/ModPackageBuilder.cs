@@ -1,0 +1,23 @@
+using System.Collections.Generic;
+using System.IO.Compression;
+using Newtonsoft.Json.Linq;
+using Grabby.Common.Utilities;
+using Grabby.Models;
+
+namespace Grabby.Features.Packaging;
+
+public static class ModPackageBuilder
+{
+    public static List<JObject> BuildManipulations(string base64Manipulations)
+        => PenumbraMetaCodec.ConvertToJObjects(base64Manipulations);
+
+    public static void AddSnapshotFiles(
+        ZipArchive archive,
+        SnapshotInfo snapshotInfo,
+        string sourceFilesDirectory,
+        Dictionary<string, string> filesDictionary,
+        IReadOnlyDictionary<string, string>? resolvedFileMap = null,
+        bool useReadableArchivePaths = false)
+        => ModpackExportUtil.AddSnapshotFilesToArchive(archive, snapshotInfo, sourceFilesDirectory, filesDictionary,
+            resolvedFileMap, useReadableArchivePaths);
+}
