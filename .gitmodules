@@ -3,4 +3,4 @@
 	url = https://github.com/Ottermandias/Glamourer.Api.git
 [submodule "Penumbra"]
 	path = Penumbra
-	url = https://github.com/Ottermandias/Penumbra.git
+	url = https://github.com/xivdev/Penumbra.git
